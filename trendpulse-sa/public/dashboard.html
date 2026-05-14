@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8"><title>Dashboard — TrendPulse SA</title>
+<link rel="stylesheet" href="styles.css">
+</head><body>
+<nav class="nav">
+  <div class="logo">🔥 TrendPulse <span class="flag">🇿🇦</span> · Owner</div>
+  <a href="#" onclick="logout()" class="btn-ghost">Logout</a>
+</nav>
+<section class="section">
+  <h2>📝 Pending Articles (Approve Before Publish)</h2>
+  <div id="pending" class="articles-grid"></div>
+</section>
+<script>
+async function load(){
+  const r=await fetch('/api/pending');
+  if(r.status===403){window.location='login.html';return;}
+  const data=await r.json();
+  document.getElementById('pending').innerHTML=data.map(a=>`
+    <div class="article">
+      <span class="tag">${a.region}</span>
+      <h3>${a.headline}</h3>
+      <p><b>${a.subheading||''}</b></p>
+      <div style="margin:1rem 0;max-height:200px;overflow:auto;font-size:.85rem">${(a.body||'').replace(/\n/g,'<br>')}</div>
+      <p style="font-size:.75rem;color:var(--muted)">Where I might be wrong: ${a.where_i_might_be_wrong||''}</p>
+      <div style="margin-top:1rem;display:flex;gap:.5rem">
+        <button class="btn-primary" onclick="approve('${a.id}')">✅ Publish</button>
+        <button class="btn-ghost" onclick="reject('${a.id}')">🗑️ Reject</button>
+        <a href="${a.sourceLink}" target="_blank" class="btn-ghost">🔗 Source</a>
+      </div>
+    </div>`).join('')||'<p class="muted">No pending articles. Pipeline runs every 30 min.</p>';
+}
+async function approve(id){await fetch('/api/approve/'+id,{method:'POST'});load();}
+async function reject(id){await fetch('/api/reject/'+id,{method:'POST'});load();}
+async function logout(){await fetch('/api/logout',{method:'POST'});window.location='login.html';}
+load();setInterval(load,30000);
+</script></body></html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8"><title>Login — TrendPulse SA</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+.login-wrap{display:flex;justify-content:center;align-items:center;min-height:100vh;padding:2rem}
+.login-card{background:var(--card);padding:3rem;border-radius:20px;width:400px;max-width:100%}
+.login-card h2{margin-bottom:1.5rem}
+.login-card input{width:100%;padding:.9rem;margin-bottom:1rem;background:#0a0a14;
+  border:1px solid #ffffff20;border-radius:10px;color:#fff;font-size:1rem}
+.err{color:#ff5252;margin-bottom:1rem;font-size:.9rem}
+</style></head><body>
+<div class="login-wrap"><div class="login-card">
+  <h2>🔐 Owner Login</h2>
+  <div id="err" class="err"></div>
+  <div id="loginForm">
+    <input id="email" type="email" placeholder="Email">
+    <input id="pwd" type="password" placeholder="Password (first time: 12345678)">
+    <button class="btn-primary" style="width:100%" onclick="doLogin()">Login</button>
+  </div>
+  <div id="changeForm" style="display:none">
+    <p style="margin-bottom:1rem">First login — please set a new password.</p>
+    <input id="newPwd" type="password" placeholder="New password (min 8 chars)">
+    <button class="btn-primary" style="width:100%" onclick="changePwd()">Save & Continue</button>
+  </div>
+</div></div>
+<script>
+async function doLogin(){
+  const email=document.getElementById('email').value;
+  const password=document.getElementById('pwd').value;
+  const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email,password})});
+  const d=await r.json();
+  if(!r.ok){document.getElementById('err').textContent=d.error;return;}
+  if(d.mustChangePassword){
+    document.getElementById('loginForm').style.display='none';
+    document.getElementById('changeForm').style.display='block';
+  } else window.location='dashboard.html';
+}
+async function changePwd(){
+  const newPassword=document.getElementById('newPwd').value;
+  const r=await fetch('/api/change-password',{method:'POST',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify({newPassword})});
+  if(r.ok)window.location='dashboard.html';
+  else document.getElementById('err').textContent='Failed — try again';
+}
+</script></body></html>
